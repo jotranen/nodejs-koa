@@ -19,3 +19,4 @@ module.exports = router;
 function kala(kala: Number) {
     console.log(kala);
 }
+

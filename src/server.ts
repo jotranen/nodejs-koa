@@ -1,12 +1,11 @@
-import Koa from 'koa'
-
+const Koa = require('koa');
+import {AppDataSource} from "./configs/database"
 require('dotenv').config()
 
 const HomeRoutes = require('./routes/home.router');
 const bodyParser = require('koa-bodyparser');
 
 const app = new Koa()
-
 
 app.use(bodyParser());
 
@@ -16,9 +15,15 @@ app.use(HomeRoutes.routes())
 // logger
 
 
-console.log(`${process.env.PORT}`);
 // dotenv.config();
 console.log(`${process.env.PORT}`);
+
+AppDataSource.initialize()
+    .then(() => {
+        // here you can start to work with your database
+        console.log("database initialized.")
+    })
+    .catch((error) => console.log(error))
 
 app.use(async (ctx, next) => {
     await next();

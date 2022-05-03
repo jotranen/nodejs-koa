@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  postgres:
+    image: postgres:14.2-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=party_db
+      - POSTGRES_USER=party
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - LC_COLLATE=C
+  redis:
+    image: redis:3-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
