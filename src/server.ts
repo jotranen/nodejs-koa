@@ -1,34 +1,54 @@
-const Koa = require('koa');
+import Koa from "koa";
+import { AsyncLocalStorage } from "async_hooks";
+
+import { KeyFormat } from "crypto";
+import { Logger } from "tslog";
+
 import {AppDataSource} from "./configs/database"
+
 require('dotenv').config()
+
+const applyApiMiddleware = require('./api');
+
+const app = new Koa();
+
+const asyncLocalStorage: AsyncLocalStorage<{ requestId: string }> =
+  new AsyncLocalStorage();
+
+  const logger: Logger = new Logger({
+    name: "Server",
+    requestId: (): string => {
+      return asyncLocalStorage.getStore()?.requestId as string;
+    },
+  });
+  export { logger };
 
 const HomeRoutes = require('./routes/home.router');
 const bodyParser = require('koa-bodyparser');
 
-const app = new Koa()
+const log: Logger = new Logger({ name: "nodejs-koa", type: "json" });
 
 app.use(bodyParser());
 
 app.use(HomeRoutes.routes())
   .use(HomeRoutes.allowedMethods());
 
-// logger
+applyApiMiddleware(app);
 
-
-// dotenv.config();
-console.log(`${process.env.PORT}`);
+logger.silly(`${process.env.PORT}`);
 
 AppDataSource.initialize()
     .then(() => {
         // here you can start to work with your database
-        console.log("database initialized.")
+        logger.info("database initialized.")
+
     })
     .catch((error) => console.log(error))
 
-app.use(async (ctx, next) => {
+app.use(async (ctx: Koa.Context , next) => {
     await next();
     const rt = ctx.response.get('X-Response-Time');
-    console.log(`${ctx.method} ${ctx.url} - ${rt}`);
+    logger.info(`${ctx.method} ${ctx.url} - ${rt}`);
   });
   
   // x-response-time
